@@ -16,6 +16,10 @@ public class FraudCheckRequest {
     private String fromAccount;
     @JsonProperty("to_account")
     private String toAccount;
+    @JsonProperty("transaction_type")
+    private String transactionType;
+    @JsonProperty("day_of_week")
+    private Integer dayOfWeek;
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public String getCountry() { return country; }
@@ -32,4 +36,8 @@ public class FraudCheckRequest {
     public void setFromAccount(String fromAccount) { this.fromAccount = fromAccount; }
     public String getToAccount() { return toAccount; }
     public void setToAccount(String toAccount) { this.toAccount = toAccount; }
+    public String getTransactionType() { return transactionType; }
+    public void setTransactionType(String transactionType) { this.transactionType = transactionType; }
+    public Integer getDayOfWeek() { return dayOfWeek; }
+    public void setDayOfWeek(Integer dayOfWeek) { this.dayOfWeek = dayOfWeek; }
 }

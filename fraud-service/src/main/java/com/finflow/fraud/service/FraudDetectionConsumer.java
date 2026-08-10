@@ -40,6 +40,10 @@ public class FraudDetectionConsumer {
             request.setTransactionId(event.getTransactionId());
             request.setFromAccount(event.getFromAccount());
             request.setToAccount(event.getToAccount());
+            request.setTransactionType(event.getTransactionType());
+            if (event.getTimestamp() != null) {
+                request.setDayOfWeek(event.getTimestamp().getDayOfWeek().getValue());
+            }
 
             FraudCheckResponse response = mlModelClient.checkFraud(request);
 
