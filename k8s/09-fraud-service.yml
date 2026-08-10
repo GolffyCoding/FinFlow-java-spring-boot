@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-service
+  namespace: finflow
+  labels:
+    app: fraud-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fraud-service
+  template:
+    metadata:
+      labels:
+        app: fraud-service
+    spec:
+      containers:
+        - name: fraud
+          image: finflow/fraud-service:1.0.0
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: finflow-config
+            - secretRef:
+                name: finflow-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8084
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8084
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud-service
+  namespace: finflow
+spec:
+  selector:
+    app: fraud-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-ml
+  namespace: finflow
+  labels:
+    app: fraud-ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fraud-ml
+  template:
+    metadata:
+      labels:
+        app: fraud-ml
+    spec:
+      containers:
+        - name: ml
+          image: finflow/fraud-ml:1.0.0
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud-ml-service
+  namespace: finflow
+spec:
+  selector:
+    app: fraud-ml
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP

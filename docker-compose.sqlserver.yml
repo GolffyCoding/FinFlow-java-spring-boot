@@ -1,0 +1,65 @@
+# Switches the backend database from Oracle to SQL Server.
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml --profile sqlserver up -d --build
+#
+# Note: this does not stop the `oracle` service defined in the base file; if you
+# don't need it running alongside, stop it separately with `docker compose stop oracle`.
+
+x-sqlserver-env: &sqlserver-env
+  DB_URL: "jdbc:sqlserver://sqlserver:1433;databaseName=finflow;encrypt=true;trustServerCertificate=true"
+  DB_USERNAME: finflow_app
+  DB_PASSWORD: "FinflowSql123456"
+  DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  DB_DIALECT: org.hibernate.dialect.SQLServerDialect
+  DB_VENDOR: sqlserver
+
+services:
+  auth-service:
+    environment:
+      <<: *sqlserver-env
+    depends_on:
+      - eureka-server
+      - redis
+      - sqlserver-init
+
+  account-service:
+    environment:
+      <<: *sqlserver-env
+    depends_on:
+      - eureka-server
+      - redis
+      - sqlserver-init
+
+  transaction-service:
+    environment:
+      <<: *sqlserver-env
+    depends_on:
+      - eureka-server
+      - kafka
+      - sqlserver-init
+
+  fraud-service:
+    environment:
+      <<: *sqlserver-env
+    depends_on:
+      - eureka-server
+      - kafka
+      - fraud-ml
+      - sqlserver-init
+
+  notification-service:
+    environment:
+      <<: *sqlserver-env
+    depends_on:
+      - eureka-server
+      - kafka
+      - mailhog
+      - sqlserver-init
+
+  audit-service:
+    environment:
+      <<: *sqlserver-env
+    depends_on:
+      - eureka-server
+      - kafka
+      - sqlserver-init

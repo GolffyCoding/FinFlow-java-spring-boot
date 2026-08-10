@@ -1,0 +1,78 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: fraud-service
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@oracle:1521/FINFLOW}
+    username: ${DB_USERNAME:finflow}
+    password: ${DB_PASSWORD:finflow123}
+    driver-class-name: ${DB_DRIVER:oracle.jdbc.OracleDriver}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      data-source-properties:
+        oracle.jdbc.timezoneAsRegion: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: ${DB_DIALECT:org.hibernate.dialect.OracleDialect}
+        timezone:
+          default_storage: NORMALIZE
+  flyway:
+    enabled: true
+    table: flyway_schema_history_fraud
+    locations: classpath:db/migration/${DB_VENDOR:oracle}
+    baseline-on-migrate: true
+    baseline-version: 0
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: fraud-detection-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 500
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+
+ml:
+  service:
+    url: ${ML_SERVICE_URL:http://fraud-ml:8000}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    com.finflow.fraud: DEBUG
+    org.springframework.kafka: INFO
+
+jwt:
+  secret: ${JWT_SECRET:finflow-super-secret-key-2024-very-long-and-secure}

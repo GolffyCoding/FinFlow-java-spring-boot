@@ -1,0 +1,87 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@oracle:1521/FINFLOW}
+    username: ${DB_USERNAME:finflow}
+    password: ${DB_PASSWORD:finflow123}
+    driver-class-name: ${DB_DRIVER:oracle.jdbc.OracleDriver}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      data-source-properties:
+        oracle.jdbc.timezoneAsRegion: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: ${DB_DIALECT:org.hibernate.dialect.OracleDialect}
+        format_sql: true
+        timezone:
+          default_storage: NORMALIZE
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+    table: flyway_schema_history_auth
+    locations: classpath:db/migration/${DB_VENDOR:oracle}
+    baseline-on-migrate: true
+    baseline-version: 0
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+jwt:
+  secret: ${JWT_SECRET:finflow-super-secret-key-2024-very-long-and-secure}
+  access-token:
+    expiration: 900
+  refresh-token:
+    expiration: 604800
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    health-check-url-path: /actuator/health
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    com.finflow.auth: DEBUG
+    org.springframework.security: DEBUG

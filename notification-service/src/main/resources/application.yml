@@ -1,0 +1,74 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@oracle:1521/FINFLOW}
+    username: ${DB_USERNAME:finflow}
+    password: ${DB_PASSWORD:finflow123}
+    driver-class-name: ${DB_DRIVER:oracle.jdbc.OracleDriver}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      data-source-properties:
+        oracle.jdbc.timezoneAsRegion: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: ${DB_DIALECT:org.hibernate.dialect.OracleDialect}
+        timezone:
+          default_storage: NORMALIZE
+  flyway:
+    enabled: true
+    table: flyway_schema_history_notification
+    locations: classpath:db/migration/${DB_VENDOR:oracle}
+    baseline-on-migrate: true
+    baseline-version: 0
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  mail:
+    host: ${SMTP_HOST:mailhog}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASS:}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.finflow.notification: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET:finflow-super-secret-key-2024-very-long-and-secure}
