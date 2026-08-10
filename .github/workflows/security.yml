@@ -29,6 +29,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Populate local Maven cache
+        # Trivy's Java/pom analyzer resolves parent POMs against Maven Central over the
+        # network when it can't find them in ~/.m2. Under concurrent CI runs that trips
+        # Central's rate limiter (HTTP 429) and fails the whole scan. Pre-resolving all
+        # module dependencies here means Trivy reads from the local cache instead.
+        run: mvn -B -q dependency:go-offline
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
